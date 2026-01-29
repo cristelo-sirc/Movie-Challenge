@@ -176,7 +176,7 @@
                 <p class="card-year">${movie.year}</p>
             </div>
             <div class="swipe-indicator seen">SEEN</div>
-            <div class="swipe-indicator skip">SKIP</div>
+            <div class="swipe-indicator skip">NOPE</div>
         `;
 
         return card;
@@ -459,7 +459,7 @@
         const shareText = `🎬 My 5000 Movie Challenge Progress
 
 ✅ Seen: ${progress.seen.toLocaleString()} movies (${percentSeen}%)
-❌ Skipped: ${progress.notSeen.toLocaleString()}
+❌ Haven't Seen: ${progress.notSeen.toLocaleString()}
 📊 Progress: ${progress.current.toLocaleString()} / 5,000
 ${bestDecade ? `🏆 Favorite decade: ${bestDecade[0]} (${bestDecade[1]} seen)` : ''}
 
@@ -482,9 +482,34 @@ Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
     }
 
     function copyShareText(text) {
-        navigator.clipboard.writeText(text)
-            .then(() => showToast('Results copied to clipboard!', 'success'))
-            .catch(() => showToast('Failed to copy results', 'error'));
+        // Try modern clipboard API first
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text)
+                .then(() => showToast('Results copied to clipboard!', 'success'))
+                .catch(() => fallbackCopy(text));
+        } else {
+            fallbackCopy(text);
+        }
+    }
+
+    function fallbackCopy(text) {
+        // Fallback for iOS Safari and older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        try {
+            document.execCommand('copy');
+            showToast('Results copied to clipboard!', 'success');
+        } catch (e) {
+            showToast('Long press to copy text', 'error');
+        }
+
+        document.body.removeChild(textarea);
     }
 
     function calculateDecadeStats(seenIds) {
