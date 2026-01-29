@@ -20,7 +20,7 @@
         skipBtn: document.getElementById('skipBtn'),
         undoBtn: document.getElementById('undoBtn'),
         resetBtn: document.getElementById('resetBtn'),
-        // New elements
+        // Menu/Modal elements
         menuBtn: document.getElementById('menuBtn'),
         shareBtn: document.getElementById('shareBtn'),
         shareResultsBtn: document.getElementById('shareResultsBtn'),
@@ -37,7 +37,13 @@
         // Stats
         statSeen: document.getElementById('statSeen'),
         statSkipped: document.getElementById('statSkipped'),
-        statRemaining: document.getElementById('statRemaining')
+        statRemaining: document.getElementById('statRemaining'),
+        // V2.0 Elements
+        soundToggleBtn: document.getElementById('soundToggleBtn'),
+        soundOnIcon: document.getElementById('soundOnIcon'),
+        soundOffIcon: document.getElementById('soundOffIcon'),
+        streakIndicator: document.getElementById('streakIndicator'),
+        streakCount: document.getElementById('streakCount')
     };
 
     // Touch/Drag State
@@ -67,6 +73,10 @@
         // Load saved state
         const savedState = StorageManager.load();
 
+        // Initialize v2.0 Managers
+        ThemeManager.init();
+        GamificationManager.init(savedState.seen?.length || 0, savedState.bestStreak || 0);
+
         // Initialize the sliding window
         SlidingWindow.init(MOVIES, savedState, {
             onUpdate: handleUpdate,
@@ -76,8 +86,19 @@
         // Set up event listeners
         setupEventListeners();
 
+        // Initialize audio on first user interaction
+        document.addEventListener('click', initAudioOnce, { once: true });
+        document.addEventListener('touchstart', initAudioOnce, { once: true });
+
         // Hide loading, show cards
         elements.loadingState.classList.add('hidden');
+    }
+
+    /**
+     * Initialize audio context on first user interaction
+     */
+    function initAudioOnce() {
+        AudioManager.init();
     }
 
     /**
@@ -108,6 +129,32 @@
 
         // Update background (desktop)
         updateBackground(data.window[0]);
+
+        // Update theme based on current movie's year
+        if (data.window[0]) {
+            const themeResult = ThemeManager.updateForYear(data.window[0].year);
+            if (themeResult.changed && themeResult.from !== null) {
+                // Decade changed! Celebrate
+                AudioManager.playDecadeTransition();
+                showDecadeToast(themeResult.theme);
+            }
+        }
+    }
+
+    /**
+     * Show decade transition toast
+     */
+    function showDecadeToast(theme) {
+        const toast = document.createElement('div');
+        toast.className = 'decade-toast';
+        toast.innerHTML = `
+            <h2>Welcome to the ${theme.displayName}</h2>
+            <p>Time travel mode activated</p>
+        `;
+        document.body.appendChild(toast);
+
+        // Remove after animation
+        setTimeout(() => toast.remove(), 2500);
     }
 
     /**
@@ -163,23 +210,70 @@
         card.className = 'movie-card';
         card.dataset.id = movie.id;
 
+        // Generate rating stars
+        const rating = movie.vote_average || 0;
+        const fullStars = Math.floor(rating / 2);
+        const halfStar = rating % 2 >= 1;
+        const stars = '★'.repeat(fullStars) + (halfStar ? '½' : '') + '☆'.repeat(5 - fullStars - (halfStar ? 1 : 0));
+
+        // Truncate overview for display
+        const overview = movie.overview || 'No description available.';
+        const truncatedOverview = overview.length > 300 ? overview.substring(0, 297) + '...' : overview;
+
         card.innerHTML = `
-            <img 
-                class="card-poster" 
-                src="${getPosterUrl(movie)}" 
-                alt="${movie.title} poster"
-                loading="${isTop ? 'eager' : 'lazy'}"
-                onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 600%22><rect fill=%22%231a1a1a%22 width=%22400%22 height=%22600%22/><text x=%22200%22 y=%22300%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2224%22>No Poster</text></svg>'"
-            >
-            <div class="card-overlay">
-                <h2 class="card-title">${escapeHtml(movie.title)}</h2>
-                <p class="card-year">${movie.year}</p>
+            <div class="card-inner">
+                <div class="card-front">
+                    <img 
+                        class="card-poster" 
+                        src="${getPosterUrl(movie)}" 
+                        alt="${movie.title} poster"
+                        loading="${isTop ? 'eager' : 'lazy'}"
+                        onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 600%22><rect fill=%22%231a1a1a%22 width=%22400%22 height=%22600%22/><text x=%22200%22 y=%22300%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2224%22>No Poster</text></svg>'"
+                    >
+                    <div class="card-overlay">
+                        <h2 class="card-title">${escapeHtml(movie.title)}</h2>
+                        <p class="card-year">${movie.year}</p>
+                    </div>
+                    <div class="swipe-indicator seen">SEEN</div>
+                    <div class="swipe-indicator skip">NOPE</div>
+                </div>
+                <div class="card-back">
+                    <div class="card-back-header">
+                        <span class="card-back-title">${escapeHtml(movie.title)}</span>
+                        <span class="card-back-year">${movie.year}</span>
+                    </div>
+                    <div class="card-back-rating">
+                        <span class="rating-stars">${stars}</span>
+                        <span class="rating-value">${rating.toFixed(1)}/10</span>
+                    </div>
+                    <div class="card-back-overview">${escapeHtml(truncatedOverview)}</div>
+                    <div class="card-back-footer">
+                        <span class="flip-hint">Tap to flip back</span>
+                    </div>
+                </div>
             </div>
-            <div class="swipe-indicator seen">SEEN</div>
-            <div class="swipe-indicator skip">NOPE</div>
         `;
 
+        // Add tap-to-flip listener (only for top card)
+        if (isTop) {
+            card.addEventListener('click', handleCardFlip);
+        }
+
         return card;
+    }
+
+    /**
+     * Handle card flip on tap
+     */
+    function handleCardFlip(e) {
+        // Don't flip if user is dragging
+        if (dragState.isDragging) return;
+
+        // Don't flip if clicking on action buttons
+        if (e.target.closest('.action-btn')) return;
+
+        const card = e.currentTarget;
+        card.classList.toggle('flipped');
     }
 
     /**
@@ -264,10 +358,14 @@
         if (dragState.currentX > SWIPE_THRESHOLD) {
             // Swipe right - Seen
             card.classList.add('swipe-right');
+            AudioManager.playSeenSound();
+            handleSeenAction();
             setTimeout(() => SlidingWindow.markSeen(), 300);
         } else if (dragState.currentX < -SWIPE_THRESHOLD) {
             // Swipe left - Not Seen
             card.classList.add('swipe-left');
+            AudioManager.playSkipSound();
+            handleSkipAction();
             setTimeout(() => SlidingWindow.markNotSeen(), 300);
         } else {
             // Return to center
@@ -279,6 +377,68 @@
         dragState.cardElement = null;
         dragState.currentX = 0;
         dragState.currentY = 0;
+    }
+
+    /**
+     * Handle "Seen" action gamification
+     */
+    function handleSeenAction() {
+        const result = GamificationManager.recordSeen();
+        updateStreakDisplay(result.streak);
+
+        // Check for milestone
+        if (result.milestone) {
+            AudioManager.playMilestoneSound();
+            GamificationManager.triggerConfetti();
+            showToast(`🎉 ${result.milestone} movies seen!`, 'success');
+        }
+
+        // Check for rank up
+        if (result.rankUp) {
+            setTimeout(() => {
+                showToast(`${result.rankUp.emoji} Rank Up: ${result.rankUp.name}!`, 'success');
+            }, 500);
+        }
+
+        // Streak sound
+        if (result.streak > 1) {
+            AudioManager.playStreakSound(result.streak);
+        }
+    }
+
+    /**
+     * Handle "Skip" action gamification
+     */
+    function handleSkipAction() {
+        GamificationManager.recordSkip();
+        hideStreakDisplay();
+    }
+
+    /**
+     * Update streak display
+     */
+    function updateStreakDisplay(streak) {
+        if (streak < 2) {
+            hideStreakDisplay();
+            return;
+        }
+
+        elements.streakCount.textContent = streak;
+        elements.streakIndicator.classList.remove('hidden');
+
+        if (streak >= 5) {
+            elements.streakIndicator.classList.add('hot');
+        } else {
+            elements.streakIndicator.classList.remove('hot');
+        }
+    }
+
+    /**
+     * Hide streak display
+     */
+    function hideStreakDisplay() {
+        elements.streakIndicator.classList.add('hidden');
+        elements.streakIndicator.classList.remove('hot');
     }
 
     /**
@@ -295,6 +455,9 @@
         });
 
         elements.undoBtn.addEventListener('click', () => {
+            AudioManager.playUndoSound();
+            GamificationManager.recordUndo(true);
+            hideStreakDisplay();
             SlidingWindow.undo();
         });
 
@@ -325,8 +488,27 @@
             handleReset();
         });
 
+        // Sound toggle
+        if (elements.soundToggleBtn) {
+            elements.soundToggleBtn.addEventListener('click', toggleSound);
+        }
+
         // Keyboard shortcuts
         document.addEventListener('keydown', handleKeyboard);
+    }
+
+    /**
+     * Toggle sound on/off
+     */
+    function toggleSound() {
+        const isEnabled = AudioManager.toggle();
+
+        if (elements.soundOnIcon && elements.soundOffIcon) {
+            elements.soundOnIcon.classList.toggle('hidden', !isEnabled);
+            elements.soundOffIcon.classList.toggle('hidden', isEnabled);
+        }
+
+        showToast(isEnabled ? '🔊 Sound On' : '🔇 Sound Off', 'success');
     }
 
     // ===== MODAL FUNCTIONS =====

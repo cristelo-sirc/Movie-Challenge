@@ -1,6 +1,6 @@
 /* ===== CSS Variables & Design Tokens ===== */
 :root {
-    /* Colors */
+    /* Base Colors */
     --bg-void: #0a0a0a;
     --bg-surface: #1a1a1a;
     --bg-elevated: #252525;
@@ -10,6 +10,15 @@
     --text-primary: #f5f5f5;
     --text-secondary: #888888;
     --text-muted: #555555;
+
+    /* Theme Variables (overridden by JS) */
+    --theme-primary: #00ff9d;
+    --theme-secondary: #ff0055;
+    --theme-accent: #ffffff;
+    --theme-background: #0a0a0a;
+    --theme-surface: #1a1a1a;
+    --theme-card-glow: rgba(0, 255, 157, 0.3);
+    --theme-font: 'Inter', sans-serif;
 
     /* Glows */
     --glow-seen: 0 0 30px rgba(0, 255, 157, 0.4);
@@ -811,5 +820,361 @@ kbd {
     to {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* ===== Decade Theme Styles ===== */
+
+/* Theme transitions */
+body {
+    transition: background-color 0.5s ease, color 0.3s ease;
+}
+
+/* Apply theme colors to key elements */
+body[data-theme] {
+    background-color: var(--theme-background);
+}
+
+body[data-theme] .decade-badge {
+    background: var(--theme-primary);
+    color: var(--theme-background);
+}
+
+body[data-theme] .action-btn.action-seen {
+    border-color: var(--theme-primary);
+    color: var(--theme-primary);
+}
+
+body[data-theme] .action-btn.action-seen:hover:not(:disabled) {
+    background: var(--theme-primary);
+    box-shadow: 0 0 30px var(--theme-card-glow);
+}
+
+body[data-theme] .progress-fill {
+    background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
+}
+
+body[data-theme] .swipe-indicator.seen {
+    background: var(--theme-primary);
+}
+
+/* 1980s Neon Theme */
+body[data-theme="1980s"] {
+    background: linear-gradient(135deg, #1a0a2e 0%, #0d0515 100%);
+}
+
+body[data-theme="1980s"]::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        linear-gradient(transparent 0%, transparent 49%, rgba(255, 0, 255, 0.03) 50%, transparent 51%, transparent 100%),
+        linear-gradient(90deg, transparent 0%, transparent 49%, rgba(0, 255, 255, 0.03) 50%, transparent 51%, transparent 100%);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: -1;
+}
+
+body[data-theme="1980s"] .decade-badge {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    text-shadow: 0 0 10px currentColor;
+}
+
+/* 1990s Grunge Theme */
+body[data-theme="1990s"] {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+body[data-theme="1990s"] .decade-badge {
+    font-family: 'Rock Salt', cursive;
+    font-size: 0.65rem;
+    letter-spacing: 0;
+}
+
+body[data-theme="1990s"] .movie-card {
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.8),
+        inset 0 0 60px rgba(139, 0, 0, 0.1);
+}
+
+/* 2000s Y2K Theme */
+body[data-theme="2000s"] {
+    background: linear-gradient(135deg, #0a0a0f 0%, #000510 100%);
+}
+
+body[data-theme="2000s"]::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(0, 255, 65, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+body[data-theme="2000s"] .decade-badge {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* 2010s Modern Theme */
+body[data-theme="2010s"] {
+    background: #0a0a0a;
+}
+
+/* 2020s Neo Modern Theme */
+body[data-theme="2020s"] {
+    background: linear-gradient(135deg, #09090b 0%, #18181b 100%);
+}
+
+body[data-theme="2020s"]::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 20% 50%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 50%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* ===== Card Flip Styles ===== */
+.movie-card {
+    perspective: 1000px;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.movie-card.flipped .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: var(--card-radius);
+    overflow: hidden;
+}
+
+.card-front {
+    z-index: 2;
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    background: var(--theme-surface, var(--bg-surface));
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-md);
+}
+
+.card-back-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-back-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-back-year {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.card-back-rating {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
+}
+
+.rating-stars {
+    color: #fbbf24;
+    font-size: 1rem;
+}
+
+.rating-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-back-overview {
+    flex: 1;
+    overflow-y: auto;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.card-back-footer {
+    margin-top: var(--space-md);
+    text-align: center;
+}
+
+.flip-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ===== Streak Indicator ===== */
+.streak-indicator {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ff6b00, #ff0055);
+    color: white;
+    padding: var(--space-xs) var(--space-md);
+    border-radius: 100px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    box-shadow: 0 4px 20px rgba(255, 107, 0, 0.4);
+    animation: streakPulse 0.5s ease-out;
+    z-index: 100;
+}
+
+.streak-indicator.hidden {
+    display: none;
+}
+
+.streak-indicator.hot {
+    animation: streakPulse 0.5s ease-out, fireGlow 1s ease-in-out infinite;
+}
+
+@keyframes streakPulse {
+    0% {
+        transform: translateX(-50%) scale(0.5);
+        opacity: 0;
+    }
+
+    50% {
+        transform: translateX(-50%) scale(1.1);
+    }
+
+    100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes fireGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 20px rgba(255, 107, 0, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 4px 30px rgba(255, 107, 0, 0.7), 0 0 40px rgba(255, 0, 85, 0.5);
+    }
+}
+
+/* ===== Rank Badge ===== */
+.rank-badge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 0.75rem;
+}
+
+.rank-emoji {
+    font-size: 1rem;
+}
+
+.rank-name {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* ===== Confetti Animation ===== */
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+.confetti-piece {
+    border-radius: 2px;
+}
+
+/* ===== Decade Transition Toast ===== */
+.decade-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--theme-surface);
+    border: 2px solid var(--theme-primary);
+    padding: var(--space-lg) var(--space-xl);
+    border-radius: 16px;
+    text-align: center;
+    z-index: 500;
+    animation: decadeToastIn 0.5s var(--ease-out-back), decadeToastOut 0.5s ease 2s forwards;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px var(--theme-card-glow);
+}
+
+.decade-toast h2 {
+    font-size: 2rem;
+    color: var(--theme-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.decade-toast p {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+@keyframes decadeToastIn {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes decadeToastOut {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+        pointer-events: none;
     }
 }
