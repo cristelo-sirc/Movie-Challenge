@@ -925,6 +925,166 @@ kbd {
     }
 }
 
+/* ===== Backup Modal Styles ===== */
+.backup-modal {
+    max-width: 360px;
+    text-align: center;
+    padding: 24px;
+}
+
+.backup-modal h2 {
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+}
+
+.qr-container {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
+#qrCode {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#qrCode img,
+#qrCode canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+.qr-hint {
+    color: #666;
+    font-size: 0.75rem;
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+
+.share-options {
+    margin-bottom: 16px;
+}
+
+.share-label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+}
+
+.share-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.share-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-surface);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 60px;
+}
+
+.share-btn:hover {
+    background: var(--bg-card);
+    transform: translateY(-2px);
+}
+
+.share-btn:active {
+    transform: translateY(0);
+}
+
+.share-icon {
+    font-size: 1.5rem;
+}
+
+.share-text {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+.backup-footer {
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.backup-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.backup-note strong {
+    color: var(--accent-seen);
+}
+
+/* Backup Reminder Banner */
+.backup-reminder-banner {
+    position: fixed;
+    top: 3px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, #059669, #10b981);
+    color: white;
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    z-index: 150;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease-out;
+}
+
+.backup-reminder-banner .backup-now-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.backup-reminder-banner .backup-now-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.backup-reminder-banner .banner-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.backup-reminder-banner .banner-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
 /* ===== Decade Theme Styles ===== */
 
 /* Theme transitions */

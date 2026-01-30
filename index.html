@@ -12,7 +12,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Press+Start+2P&family=Rock+Salt&family=Orbitron:wght@500;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=10">
+    <link rel="stylesheet" href="styles.css?v=11">
 </head>
 
 <body>
@@ -196,17 +196,59 @@
             </div>
         </div>
 
+        <!-- Backup Modal -->
+        <div class="modal hidden" id="backupModal">
+            <div class="modal-overlay"></div>
+            <div class="modal-content backup-modal">
+                <button class="modal-close" id="closeBackupModal" aria-label="Close">×</button>
+                <h2>💾 Backup Your Progress</h2>
+
+                <div class="qr-container">
+                    <div id="qrCode"></div>
+                    <p class="qr-hint">Screenshot this QR code to save</p>
+                </div>
+
+                <div class="share-options">
+                    <p class="share-label">Or share via:</p>
+                    <div class="share-buttons">
+                        <button class="share-btn" id="shareEmail" title="Email to self">
+                            <span class="share-icon">📧</span>
+                            <span class="share-text">Email</span>
+                        </button>
+                        <button class="share-btn" id="shareSMS" title="Text to self">
+                            <span class="share-icon">💬</span>
+                            <span class="share-text">Text</span>
+                        </button>
+                        <button class="share-btn" id="shareDownload" title="Download file">
+                            <span class="share-icon">📥</span>
+                            <span class="share-text">File</span>
+                        </button>
+                        <button class="share-btn" id="shareLink" title="Copy link">
+                            <span class="share-icon">🔗</span>
+                            <span class="share-text">Link</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="backup-footer">
+                    <p class="backup-note">Your progress: <strong id="backupProgressCount">0</strong> movies rated</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Toast Notification -->
         <div class="toast hidden" id="toast"></div>
     </div>
 
+    <script src="js/lib/lz-string.min.js"></script>
+    <script src="js/lib/qrcode.min.js"></script>
     <script src="data/movies.js"></script>
-    <script src="js/storage.js?v=10"></script>
-    <script src="js/sliding-window.js?v=10"></script>
-    <script src="js/audio-manager.js?v=10"></script>
-    <script src="js/theme-manager.js?v=10"></script>
-    <script src="js/gamification.js?v=10"></script>
-    <script src="js/app.js?v=10"></script>
+    <script src="js/storage.js?v=11"></script>
+    <script src="js/sliding-window.js?v=11"></script>
+    <script src="js/audio-manager.js?v=11"></script>
+    <script src="js/theme-manager.js?v=11"></script>
+    <script src="js/gamification.js?v=11"></script>
+    <script src="js/app.js?v=11"></script>
 </body>
 
 </html>

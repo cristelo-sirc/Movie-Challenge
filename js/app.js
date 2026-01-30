@@ -46,7 +46,16 @@
         soundOnIcon: document.getElementById('soundOnIcon'),
         soundOffIcon: document.getElementById('soundOffIcon'),
         streakIndicator: document.getElementById('streakIndicator'),
-        streakCount: document.getElementById('streakCount')
+        streakCount: document.getElementById('streakCount'),
+        // Backup Modal Elements
+        backupModal: document.getElementById('backupModal'),
+        closeBackupModal: document.getElementById('closeBackupModal'),
+        qrCode: document.getElementById('qrCode'),
+        backupProgressCount: document.getElementById('backupProgressCount'),
+        shareEmail: document.getElementById('shareEmail'),
+        shareSMS: document.getElementById('shareSMS'),
+        shareDownload: document.getElementById('shareDownload'),
+        shareLink: document.getElementById('shareLink')
     };
 
     // Touch/Drag State
@@ -69,16 +78,32 @@
     // Current mode for code input
     let codeInputMode = null; // 'export' or 'import'
 
+    // Track last backup reminder milestone
+    let lastBackupReminder = 0;
+
     /**
      * Initialize the application
      */
     function init() {
-        // Load saved state
-        const savedState = StorageManager.load();
+        // Check for URL-based progress first (for shared links)
+        let savedState = StorageManager.checkURLForProgress();
+
+        if (savedState) {
+            // Progress restored from URL - save it locally
+            StorageManager.save(savedState);
+            showToast('Progress restored from link!', 'success');
+        } else {
+            // Load saved state from localStorage
+            savedState = StorageManager.load();
+        }
 
         // Initialize v2.0 Managers
         ThemeManager.init();
         GamificationManager.init(savedState.seen?.length || 0, savedState.bestStreak || 0);
+
+        // Initialize backup reminder tracking
+        const totalRated = savedState.seen.length + savedState.notSeen.length;
+        lastBackupReminder = Math.floor(totalRated / 100) * 100;
 
         // Initialize the sliding window
         SlidingWindow.init(MOVIES, savedState, {
@@ -201,6 +226,63 @@
                 showDecadeToast(themeResult.theme);
             }
         }
+
+        // Check for 100-movie backup reminder (mobile only)
+        checkBackupReminder(data.progress.seen + data.progress.notSeen);
+    }
+
+    /**
+     * Check if we should show a backup reminder
+     * Shows every 100 movies on mobile devices
+     */
+    function checkBackupReminder(totalRated) {
+        // Only show on mobile
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (!isMobile) return;
+
+        // Check if we've hit a new 100-movie milestone
+        const currentMilestone = Math.floor(totalRated / 100) * 100;
+        if (currentMilestone > lastBackupReminder && currentMilestone > 0) {
+            lastBackupReminder = currentMilestone;
+            showBackupReminder(currentMilestone);
+        }
+    }
+
+    /**
+     * Show backup reminder banner
+     */
+    function showBackupReminder(milestone) {
+        // Don't show if one is already visible
+        if (document.querySelector('.backup-reminder-banner')) return;
+
+        const banner = document.createElement('div');
+        banner.className = 'backup-reminder-banner';
+        banner.innerHTML = `
+            <span>🎉 ${milestone} movies rated! Backup your progress?</span>
+            <div style="display: flex; gap: 8px;">
+                <button class="backup-now-btn">Backup Now</button>
+                <button class="banner-close" aria-label="Dismiss">✕</button>
+            </div>
+        `;
+
+        document.body.insertBefore(banner, document.body.firstChild);
+
+        banner.querySelector('.backup-now-btn').addEventListener('click', () => {
+            banner.remove();
+            openBackupModal();
+        });
+
+        banner.querySelector('.banner-close').addEventListener('click', () => {
+            banner.remove();
+        });
+
+        // Auto-dismiss after 15 seconds
+        setTimeout(() => {
+            if (banner.parentNode) {
+                banner.classList.add('fade-out');
+                setTimeout(() => banner.remove(), 500);
+            }
+        }, 15000);
     }
 
     /**
@@ -555,6 +637,27 @@
             elements.soundToggleBtn.addEventListener('click', toggleSound);
         }
 
+        // Backup modal
+        if (elements.closeBackupModal) {
+            elements.closeBackupModal.addEventListener('click', closeBackupModal);
+        }
+        if (elements.shareEmail) {
+            elements.shareEmail.addEventListener('click', shareViaEmail);
+        }
+        if (elements.shareSMS) {
+            elements.shareSMS.addEventListener('click', shareViaSMS);
+        }
+        if (elements.shareDownload) {
+            elements.shareDownload.addEventListener('click', downloadAsFile);
+        }
+        if (elements.shareLink) {
+            elements.shareLink.addEventListener('click', copyShareLink);
+        }
+        // Close backup modal on overlay click
+        if (elements.backupModal) {
+            elements.backupModal.querySelector('.modal-overlay')?.addEventListener('click', closeBackupModal);
+        }
+
         // Keyboard shortcuts
         document.addEventListener('keydown', handleKeyboard);
     }
@@ -600,17 +703,9 @@
 
     function handleExport() {
         const state = SlidingWindow.getState();
-        const exportData = {
-            v: 1,
-            s: state.seen,
-            n: state.notSeen,
-            i: state.currentIndex,
-            t: Date.now()
-        };
 
-        // Compress to base64
-        const json = JSON.stringify(exportData);
-        const encoded = btoa(json);
+        // Use new compressed format (v2)
+        const encoded = StorageManager.exportCompressed(state);
 
         elements.codeInput.value = encoded;
         elements.codeInput.classList.remove('hidden');
@@ -647,45 +742,37 @@
             return;
         }
 
-        try {
-            const json = atob(code);
-            const data = JSON.parse(json);
+        // Use new importCompressed which handles both v1 and v2 formats
+        const newState = StorageManager.importCompressed(code);
 
-            if (!data.v || !Array.isArray(data.s) || !Array.isArray(data.n)) {
-                throw new Error('Invalid format');
-            }
-
-            // Apply the imported state
-            const newState = {
-                currentIndex: data.i || 0,
-                seen: data.s,
-                notSeen: data.n,
-                history: []
-            };
-
-            StorageManager.save(newState);
-
-            // Reinitialize the sliding window
-            SlidingWindow.init(MOVIES, newState, {
-                onUpdate: handleUpdate,
-                onComplete: handleComplete
-            });
-
-            // Re-sync gamification manager with imported seen count
-            GamificationManager.init(newState.seen.length, 0);
-
-            closeModal();
-            showToast(`Imported ${data.s.length + data.n.length} ratings!`, 'success');
-
-            // Re-enable buttons if not complete
-            if (!SlidingWindow.isComplete()) {
-                elements.seenBtn.disabled = false;
-                elements.skipBtn.disabled = false;
-                elements.completionState.classList.add('hidden');
-            }
-
-        } catch (e) {
+        if (!newState) {
             showToast('Invalid progress code', 'error');
+            return;
+        }
+
+        StorageManager.save(newState);
+
+        // Reinitialize the sliding window
+        SlidingWindow.init(MOVIES, newState, {
+            onUpdate: handleUpdate,
+            onComplete: handleComplete
+        });
+
+        // Re-sync gamification manager with imported seen count
+        GamificationManager.init(newState.seen.length, 0);
+
+        // Update backup reminder tracking
+        const totalRated = newState.seen.length + newState.notSeen.length;
+        lastBackupReminder = Math.floor(totalRated / 100) * 100;
+
+        closeModal();
+        showToast(`Imported ${newState.seen.length + newState.notSeen.length} ratings!`, 'success');
+
+        // Re-enable buttons if not complete
+        if (!SlidingWindow.isComplete()) {
+            elements.seenBtn.disabled = false;
+            elements.skipBtn.disabled = false;
+            elements.completionState.classList.add('hidden');
         }
     }
 
@@ -791,6 +878,152 @@ Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
         if (year < 2010) return '2000s';
         if (year < 2020) return '2010s';
         return '2020s';
+    }
+
+    // ===== BACKUP MODAL FUNCTIONS =====
+
+    /**
+     * Open the backup modal and generate QR code
+     */
+    function openBackupModal() {
+        const state = SlidingWindow.getState();
+        const totalRated = state.seen.length + state.notSeen.length;
+
+        // Update progress count
+        elements.backupProgressCount.textContent = totalRated.toLocaleString();
+
+        // Generate share URL
+        const shareURL = StorageManager.generateShareURL(state);
+
+        // Clear previous QR code
+        elements.qrCode.innerHTML = '';
+
+        // Generate QR code
+        try {
+            const qr = qrcode(0, 'L');
+            qr.addData(shareURL);
+            qr.make();
+            elements.qrCode.innerHTML = qr.createImgTag(4, 8);
+        } catch (e) {
+            console.error('QR generation failed:', e);
+            elements.qrCode.innerHTML = '<p style="color: #666; font-size: 0.8rem;">QR code unavailable</p>';
+        }
+
+        // Store URL for sharing buttons
+        elements.backupModal.dataset.shareUrl = shareURL;
+
+        // Show modal
+        elements.backupModal.classList.remove('hidden');
+    }
+
+    /**
+     * Close the backup modal
+     */
+    function closeBackupModal() {
+        elements.backupModal.classList.add('hidden');
+    }
+
+    /**
+     * Share via email
+     */
+    function shareViaEmail() {
+        const shareURL = elements.backupModal.dataset.shareUrl;
+        const subject = encodeURIComponent('My Movie Challenge Progress');
+        const body = encodeURIComponent(`🎬 Here's my Movie Challenge progress!\n\nClick to continue where I left off:\n${shareURL}`);
+
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        showToast('Opening email...', 'success');
+    }
+
+    /**
+     * Share via SMS
+     */
+    function shareViaSMS() {
+        const shareURL = elements.backupModal.dataset.shareUrl;
+        const body = encodeURIComponent(`🎬 My Movie Challenge Progress\n\nClick to restore:\n${shareURL}`);
+
+        // iOS uses &body=, Android uses ?body=
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const separator = isIOS ? '&' : '?';
+
+        window.location.href = `sms:${separator}body=${body}`;
+        showToast('Opening messages...', 'success');
+    }
+
+    /**
+     * Download as file
+     */
+    function downloadAsFile() {
+        const state = SlidingWindow.getState();
+        const shareURL = elements.backupModal.dataset.shareUrl;
+        const code = StorageManager.exportCompressed(state);
+        const totalRated = state.seen.length + state.notSeen.length;
+
+        const content = `🎬 5000 Movie Challenge - Progress Backup
+========================================
+
+Total Movies Rated: ${totalRated}
+Seen: ${state.seen.length}
+Not Seen: ${state.notSeen.length}
+Date: ${new Date().toLocaleDateString()}
+
+OPTION 1: Click this link to restore
+${shareURL}
+
+OPTION 2: Paste this code in the app
+${code}
+
+========================================
+https://cristelo-sirc.github.io/movie-challenge/`;
+
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `movie-challenge-backup-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showToast('File downloaded!', 'success');
+    }
+
+    /**
+     * Copy shareable link
+     */
+    function copyShareLink() {
+        const shareURL = elements.backupModal.dataset.shareUrl;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareURL)
+                .then(() => showToast('Link copied!', 'success'))
+                .catch(() => {
+                    // Fallback
+                    fallbackCopyLink(shareURL);
+                });
+        } else {
+            fallbackCopyLink(shareURL);
+        }
+    }
+
+    function fallbackCopyLink(url) {
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        try {
+            document.execCommand('copy');
+            showToast('Link copied!', 'success');
+        } catch (e) {
+            showToast('Failed to copy', 'error');
+        }
+
+        document.body.removeChild(textarea);
     }
 
     // ===== TOAST NOTIFICATION =====
