@@ -631,7 +631,8 @@
         if (elements.backupBtn) {
             elements.backupBtn.addEventListener('click', () => {
                 closeModal();
-                openBackupModal();
+                // Brief delay to allow settings modal to hide properly
+                setTimeout(() => openBackupModal(), 50);
             });
         }
 

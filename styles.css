@@ -961,16 +961,19 @@ kbd {
 #backupModal .modal-overlay {
     position: absolute;
     inset: 0;
+    /* Removed backdrop-filter to prevent key rendering issues on iOS */
     background: rgba(0, 0, 0, 0.85);
 }
 
 #backupModal .modal-content {
     position: relative;
-    background: var(--bg-surface);
+    /* Enforce dark background */
+    background: #1a1a1a;
     border-radius: 16px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     animation: slideUp 0.3s var(--ease-out-expo);
+    z-index: 20;
 }
 
 .backup-modal {
@@ -982,36 +985,41 @@ kbd {
 
 .backup-modal .modal-close {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: var(--text-primary);
-    width: 32px;
-    height: 32px;
+    top: 10px;
+    right: 10px;
+    background: #333;
+    border: 1px solid #555;
+    color: white;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     font-size: 1.2rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 30;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .backup-modal .modal-close:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: #444;
 }
 
 .backup-modal h2 {
     margin-bottom: 20px;
     font-size: 1.3rem;
+    padding-right: 20px;
+    color: white;
 }
 
 .qr-container {
     background: white;
     padding: 16px;
     border-radius: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
     display: inline-block;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 #qrCode {
@@ -1030,19 +1038,20 @@ kbd {
 }
 
 .qr-hint {
-    color: #666;
-    font-size: 0.75rem;
+    color: #333;
+    font-size: 0.8rem;
     margin-top: 10px;
     margin-bottom: 0;
+    font-weight: 600;
 }
 
 .share-options {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .share-label {
-    color: var(--text-muted);
-    font-size: 0.85rem;
+    color: #aaa;
+    font-size: 0.9rem;
     margin-bottom: 12px;
 }
 
@@ -1056,20 +1065,24 @@ kbd {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    background: var(--bg-surface);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    justify-content: center;
+    gap: 8px;
+    background: #2a2a2a;
+    /* Solid background */
+    border: 1px solid #444;
     border-radius: 12px;
-    padding: 12px 16px;
-    color: var(--text-primary);
+    padding: 12px 0;
+    width: 70px;
+    color: white;
     cursor: pointer;
     transition: all 0.2s ease;
-    min-width: 60px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .share-btn:hover {
-    background: var(--bg-card);
+    background: #333;
     transform: translateY(-2px);
+    border-color: #666;
 }
 
 .share-btn:active {
