@@ -800,6 +800,15 @@ Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
 
         topCard.classList.add(direction === 'right' ? 'swipe-right' : 'swipe-left');
 
+        // Play audio and track gamification
+        if (direction === 'right') {
+            AudioManager.playSeenSound();
+            handleSeenAction();
+        } else {
+            AudioManager.playSkipSound();
+            handleSkipAction();
+        }
+
         setTimeout(() => {
             if (direction === 'right') {
                 SlidingWindow.markSeen();

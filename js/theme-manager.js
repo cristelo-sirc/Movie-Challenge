@@ -13,14 +13,14 @@ const ThemeManager = (function () {
     const themes = {
         '1980s': {
             name: '1980s',
-            displayName: "80's Neon",
+            displayName: "80's Synthwave",
             colors: {
-                primary: '#ff00ff',      // Neon Magenta
-                secondary: '#00ffff',    // Cyan
+                primary: '#00d4ff',      // Cyan (readable)
+                secondary: '#ff00ff',    // Magenta
                 accent: '#ffff00',       // Yellow
                 background: '#1a0a2e',   // Dark Purple
                 surface: '#2d1b4e',
-                cardGlow: 'rgba(255, 0, 255, 0.4)'
+                cardGlow: 'rgba(0, 212, 255, 0.4)'
             },
             font: "'Press Start 2P', monospace",
             pattern: 'grid'

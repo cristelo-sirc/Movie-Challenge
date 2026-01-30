@@ -840,15 +840,8 @@ body[data-theme] .decade-badge {
     color: var(--theme-background);
 }
 
-body[data-theme] .action-btn.action-seen {
-    border-color: var(--theme-primary);
-    color: var(--theme-primary);
-}
-
-body[data-theme] .action-btn.action-seen:hover:not(:disabled) {
-    background: var(--theme-primary);
-    box-shadow: 0 0 30px var(--theme-card-glow);
-}
+/* Keep original button colors - don't override with theme */
+/* The green/red buttons are already well-designed */
 
 body[data-theme] .progress-fill {
     background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
