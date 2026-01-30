@@ -98,6 +98,67 @@ body {
     box-shadow: 0 0 10px var(--accent-seen);
 }
 
+/* ===== Private Browsing Warning Banner ===== */
+.private-browsing-banner {
+    position: fixed;
+    top: 3px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, #b45309, #d97706);
+    color: white;
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    z-index: 150;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.private-browsing-banner.fade-out {
+    animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes slideUp {
+    to {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
+.private-browsing-banner .banner-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.private-browsing-banner .banner-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
 /* ===== HUD Header ===== */
 .hud {
     display: flex;

@@ -33,6 +33,12 @@ const AudioManager = (function () {
 
             isInitialized = true;
             console.log('Audio initialized successfully');
+
+            // Keep trying to resume on iOS - sometimes needs multiple attempts
+            document.addEventListener('touchstart', resume, { passive: true });
+            document.addEventListener('touchend', resume, { passive: true });
+            document.addEventListener('click', resume);
+
         } catch (e) {
             console.warn('Web Audio API not supported:', e);
             isEnabled = false;
@@ -134,7 +140,9 @@ const AudioManager = (function () {
      * Swipe Right - "Seen" sound (happy ding)
      */
     function playSeenSound() {
-        if (!isEnabled || !audioContext) return;
+        if (!isEnabled) return;
+        ensureReady();
+        if (!audioContext) return;
 
         // Pleasant ascending chord
         playTone(523, 0.15, 'sine', 0.25);  // C5
@@ -146,7 +154,9 @@ const AudioManager = (function () {
      * Swipe Left - "Haven't Seen" sound (soft thud)
      */
     function playSkipSound() {
-        if (!isEnabled || !audioContext) return;
+        if (!isEnabled) return;
+        ensureReady();
+        if (!audioContext) return;
 
         // Low thump with noise
         playTone(120, 0.12, 'sine', 0.3);
@@ -157,7 +167,9 @@ const AudioManager = (function () {
      * Undo sound (rewind effect)
      */
     function playUndoSound() {
-        if (!isEnabled || !audioContext) return;
+        if (!isEnabled) return;
+        ensureReady();
+        if (!audioContext) return;
 
         // Quick descending sweep
         const oscillator = audioContext.createOscillator();
@@ -181,7 +193,9 @@ const AudioManager = (function () {
      * Decade transition fanfare
      */
     function playDecadeTransition() {
-        if (!isEnabled || !audioContext) return;
+        if (!isEnabled) return;
+        ensureReady();
+        if (!audioContext) return;
 
         // Ascending arpeggio
         const notes = [262, 330, 392, 523]; // C4, E4, G4, C5
@@ -194,7 +208,9 @@ const AudioManager = (function () {
      * Milestone celebration (longer, more elaborate)
      */
     function playMilestoneSound() {
-        if (!isEnabled || !audioContext) return;
+        if (!isEnabled) return;
+        ensureReady();
+        if (!audioContext) return;
 
         // Victory fanfare
         const melody = [
@@ -215,7 +231,9 @@ const AudioManager = (function () {
      * Streak increment sound
      */
     function playStreakSound(streakCount) {
-        if (!isEnabled || !audioContext) return;
+        if (!isEnabled) return;
+        ensureReady();
+        if (!audioContext) return;
 
         // Higher pitch for higher streaks
         const baseFreq = 400 + (streakCount * 50);

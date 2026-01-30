@@ -93,8 +93,79 @@
         document.addEventListener('click', initAudioOnce, { once: true });
         document.addEventListener('touchstart', initAudioOnce, { once: true });
 
+        // Check for private browsing mode
+        checkPrivateBrowsing();
+
         // Hide loading, show cards
         elements.loadingState.classList.add('hidden');
+    }
+
+    /**
+     * Check if user is in private browsing mode
+     * Private mode may not persist localStorage reliably
+     */
+    function checkPrivateBrowsing() {
+        try {
+            // Test if localStorage actually works
+            const testKey = '__private_test__';
+            localStorage.setItem(testKey, '1');
+            localStorage.removeItem(testKey);
+
+            // Additional check: In Safari private mode, localStorage quota is often 0
+            // or data doesn't persist. We can detect this by checking if our saved state is empty
+            // when navigator suggests it shouldn't be (heuristic check).
+
+            // Check if Safari private mode indicators exist
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+
+            if (isIOS && isSafari) {
+                // Try to detect if we're in private mode by checking storage estimate
+                // or seeing if the indexedDB is restricted
+                try {
+                    const db = indexedDB.open('private_test');
+                    db.onerror = function () {
+                        // indexedDB blocked - likely private mode
+                        showPrivateBrowsingWarning();
+                    };
+                } catch (e) {
+                    showPrivateBrowsingWarning();
+                }
+            }
+        } catch (e) {
+            // localStorage is completely blocked - definitely private mode
+            showPrivateBrowsingWarning();
+        }
+    }
+
+    /**
+     * Show warning banner for private browsing users
+     */
+    function showPrivateBrowsingWarning() {
+        // Only show once per session
+        if (sessionStorage.getItem('private_warning_shown')) return;
+
+        const banner = document.createElement('div');
+        banner.className = 'private-browsing-banner';
+        banner.innerHTML = `
+            <span>⚠️ Private browsing detected - your progress may not be saved. Use "Export Code" in the menu to backup your progress.</span>
+            <button class="banner-close" aria-label="Dismiss">✕</button>
+        `;
+
+        document.body.insertBefore(banner, document.body.firstChild);
+
+        banner.querySelector('.banner-close').addEventListener('click', () => {
+            banner.remove();
+            sessionStorage.setItem('private_warning_shown', '1');
+        });
+
+        // Auto-dismiss after 10 seconds
+        setTimeout(() => {
+            if (banner.parentNode) {
+                banner.classList.add('fade-out');
+                setTimeout(() => banner.remove(), 500);
+            }
+        }, 10000);
     }
 
     /**
@@ -616,6 +687,9 @@
                 onComplete: handleComplete
             });
 
+            // Re-sync gamification manager with imported seen count
+            GamificationManager.init(newState.seen.length, 0);
+
             closeModal();
             showToast(`Imported ${data.s.length + data.n.length} ratings!`, 'success');
 
@@ -753,6 +827,7 @@ Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
         if (confirm('Reset all progress? This cannot be undone.')) {
             StorageManager.reset();
             SlidingWindow.reset();
+            GamificationManager.init(0, 0); // Reset gamification state
             elements.completionState.classList.add('hidden');
             elements.seenBtn.disabled = false;
             elements.skipBtn.disabled = false;
