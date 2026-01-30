@@ -111,47 +111,19 @@
         // Only check on iOS Safari where private browsing is the issue
         if (!isIOS || !isSafari) return;
 
-        // Method 1: Use Storage API to check quota (most reliable)
-        if (navigator.storage && navigator.storage.estimate) {
-            navigator.storage.estimate().then(estimate => {
-                // Private mode typically has very limited quota (< 100MB)
-                // Normal mode usually has several GB
-                if (estimate.quota && estimate.quota < 120000000) {
-                    showPrivateBrowsingWarning();
-                }
-            }).catch(() => {
-                // If estimate fails, try other methods
-                checkPrivateBrowsingFallback();
-            });
-        } else {
-            checkPrivateBrowsingFallback();
-        }
-    }
+        // Check if user has any saved progress
+        const savedState = StorageManager.load();
+        const hasProgress = savedState.seen.length > 0 || savedState.notSeen.length > 0;
 
-    /**
-     * Fallback detection for older browsers
-     */
-    function checkPrivateBrowsingFallback() {
-        try {
-            // Try to use a significant amount of localStorage
-            const testKey = '__private_test__';
-            const testData = new Array(100).join('a'); // 100 chars
-            localStorage.setItem(testKey, testData);
-            localStorage.removeItem(testKey);
-
-            // Also check if indexedDB is restricted
-            const db = indexedDB.open('private_test');
-            db.onerror = function () {
-                showPrivateBrowsingWarning();
-            };
-        } catch (e) {
-            // localStorage blocked = definitely private mode
+        // Show warning to iOS Safari users with no progress
+        // This covers: new users, private browsing users, and users who lost data
+        if (!hasProgress) {
             showPrivateBrowsingWarning();
         }
     }
 
     /**
-     * Show warning banner for private browsing users
+     * Show warning banner for iOS Safari users
      */
     function showPrivateBrowsingWarning() {
         // Only show once per session
@@ -160,7 +132,7 @@
         const banner = document.createElement('div');
         banner.className = 'private-browsing-banner';
         banner.innerHTML = `
-            <span>⚠️ Private browsing detected - your progress may not be saved. Use "Export Code" in the menu to backup your progress.</span>
+            <span>💡 Tip: Use "Export Code" in the ☰ menu to backup your progress. Private browsing won't save data.</span>
             <button class="banner-close" aria-label="Dismiss">✕</button>
         `;
 
