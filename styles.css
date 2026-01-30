@@ -958,10 +958,10 @@ kbd {
     animation: none;
 }
 
-#backupModal .modal-overlay {
+/* Use a specific class to avoid inheriting global .modal-overlay styles */
+.backup-overlay {
     position: absolute;
     inset: 0;
-    /* Removed backdrop-filter to prevent key rendering issues on iOS */
     background: rgba(0, 0, 0, 0.85);
     z-index: -1;
 }
