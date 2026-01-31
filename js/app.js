@@ -386,17 +386,29 @@
                 </div>
                 <div class="card-back">
                     <div class="card-back-header">
-                        <span class="card-back-title">${escapeHtml(movie.title)}</span>
-                        <span class="card-back-year">${movie.year}</span>
-                    </div>
-                    <div class="card-back-rating">
-                        <span class="rating-stars">${stars}</span>
-                        <span class="rating-value">${rating.toFixed(1)}/10</span>
-                    </div>
-                    <div class="card-back-overview">${escapeHtml(truncatedOverview)}</div>
-                    <div class="card-back-footer">
-                        <span class="flip-hint">Tap to flip back</span>
-                    </div>
+                    <span class="card-back-title">${escapeHtml(movie.title)}</span>
+                    <span class="card-back-year">${movie.year}</span>
+                </div>
+                <div class="card-back-rating">
+                    <div class="rating-stars">${'★'.repeat(fullStars)}${halfStar ? '½' : ''}${'☆'.repeat(5 - fullStars - (halfStar ? 1 : 0))}</div>
+                    <span class="rating-value">${rating.toFixed(1)}/10</span>
+                </div>
+                
+                ${movie.runtime || movie.director ? `
+                <div class="card-back-meta">
+                    ${movie.runtime ? `<span>⏱ ${movie.runtime}m</span>` : ''}
+                    ${movie.director ? `<span>🎬 ${movie.director}</span>` : ''}
+                </div>` : ''}
+                
+                ${movie.cast && movie.cast.length ? `
+                <div class="card-back-cast">
+                    <strong>Cast:</strong> ${movie.cast.join(', ')}
+                </div>` : ''}
+
+                <div class="card-back-overview">${escapeHtml(truncatedOverview)}</div>
+                
+                <div class="card-back-footer">
+                    Tap to flip back
                 </div>
             </div>
         `;

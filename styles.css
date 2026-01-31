@@ -316,18 +316,29 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
-.rating-stars {
-    color: #FFD700;
-    font-size: 1.1rem;
+.card-back-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
 }
 
-.rating-value {
-    color: var(--text-secondary);
+.card-back-meta span {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.card-back-cast {
     font-size: 0.9rem;
-    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.4;
 }
 
 .card-back-overview {
@@ -344,8 +355,9 @@ body {
     margin-top: 16px;
     text-align: center;
     font-size: 0.8rem;
-    color: var(--text-muted);
-    opacity: 0.6;
+    color: var(--text-primary);
+    opacity: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 /* Info Button */
