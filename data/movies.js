@@ -1,6 +1,6 @@
 /**
  * 5000 Movie Challenge - Dataset
- * Updated: 2026-01-31T02:55:48.000Z
+ * Updated: 2026-01-31T16:24:20.000Z
  * Source: TMDB
  * Total: 5014
  */
@@ -56861,7 +56861,14 @@ const MOVIES = [
     "poster_path": "/5KeUqW6DpVtf8G9VMuI2l0XIPCo.jpg",
     "backdrop_path": "/hwOFrwHladQ8FktYn3aJNAt8KA1.jpg",
     "overview": "The revealing story of the 16th US President's tumultuous final months in office. In a nation divided by war and the strong winds of change, Lincoln pursues a course of action designed to end the war, unite the country and abolish slavery. With the moral courage and fierce determination to succeed, his choices during this critical moment will change the fate of generations to come.",
-    "vote_average": 6.852
+    "vote_average": 6.852,
+    "runtime": 149,
+    "director": "Steven Spielberg",
+    "cast": [
+      "Daniel Day-Lewis",
+      "Sally Field",
+      "David Strathairn"
+    ]
   },
   {
     "id": 102784,
@@ -60054,7 +60061,14 @@ const MOVIES = [
     "poster_path": "/tVFRpFw3xTedgPGqxW0AOI8Qhh0.jpg",
     "backdrop_path": "/1RWLMyC9KcFfcaoViMiJGSSZzzr.jpg",
     "overview": "After the cataclysmic events in New York with The Avengers, Steve Rogers, aka Captain America is living quietly in Washington, D.C. and trying to adjust to the modern world. But when a S.H.I.E.L.D. colleague comes under attack, Steve becomes embroiled in a web of intrigue that threatens to put the world at risk. Joining forces with the Black Widow, Captain America struggles to expose the ever-widening conspiracy while fighting off professional assassins sent to silence him at every turn. When the full scope of the villainous plot is revealed, Captain America and the Black Widow enlist the help of a new ally, the Falcon. However, they soon find themselves up against an unexpected and formidable enemy—the Winter Soldier.",
-    "vote_average": 7.7
+    "vote_average": 7.7,
+    "runtime": 136,
+    "director": "Joe Russo",
+    "cast": [
+      "Chris Evans",
+      "Samuel L. Jackson",
+      "Scarlett Johansson"
+    ]
   },
   {
     "id": 157845,
@@ -62815,7 +62829,14 @@ const MOVIES = [
     "poster_path": "/dLlH4aNHdnmf62umnInL8xPlPzw.jpg",
     "backdrop_path": "/3upEZ0ltY7WwOSFVXrtiP34D48p.jpg",
     "overview": "1930s Korea, in the period of Japanese occupation, a new girl, Sookee, is hired as a handmaiden to a Japanese heiress, Hideko, who lives a secluded life on a large countryside estate with her domineering Uncle Kouzuki. But the maid has a secret. She is a pickpocket recruited by a swindler posing as a Japanese Count to help him seduce the Lady to steal her fortune.",
-    "vote_average": 8.19
+    "vote_average": 8.19,
+    "runtime": 145,
+    "director": "Park Chan-wook",
+    "cast": [
+      "Kim Min-hee",
+      "Kim Tae-ri",
+      "Ha Jung-woo"
+    ]
   },
   {
     "id": 271110,
@@ -65656,7 +65677,14 @@ const MOVIES = [
     "poster_path": "/vlc95gl3PtrjxSEuM8RhTtSm2xU.jpg",
     "backdrop_path": "/5rYnygKCkmqWuMv1O5yAnzGF8gV.jpg",
     "overview": "In the 28th century, Valerian and Laureline are special operatives charged with keeping order throughout the human territories. On assignment from the Minister of Defense, the two undertake a mission to Alpha, an ever-expanding metropolis where species from across the universe have converged over centuries to share knowledge, intelligence, and cultures. At the center of Alpha is a mysterious dark force which threatens the peaceful existence of the City of a Thousand Planets, and Valerian and Laureline must race to identify the menace and safeguard not just Alpha, but the future of the universe.",
-    "vote_average": 6.632
+    "vote_average": 6.632,
+    "runtime": 137,
+    "director": "Luc Besson",
+    "cast": [
+      "Dane DeHaan",
+      "Cara Delevingne",
+      "Clive Owen"
+    ]
   },
   {
     "id": 395992,
