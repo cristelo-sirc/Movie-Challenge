@@ -415,7 +415,12 @@
                 infoBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     e.preventDefault();
+                    // DEBUG
+                    showToast('Info Clicked', 'success');
                     card.classList.toggle('flipped');
+                    // DEBUG
+                    if (card.classList.contains('flipped')) showToast('Flipped: ON', 'info');
+                    else showToast('Flipped: OFF', 'info');
                 });
             }
 
