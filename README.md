@@ -1,5 +1,6 @@
 
 # 🎬 5000 Movie Challenge
+[![Live Demo](https://img.shields.io/badge/demo-live-green.svg?style=for-the-badge&logo=github)](https://cristelo-sirc.github.io/movie-challenge/)
 
 **Can you watch them all?**
 A Tinder-style movie discovery app that challenges you to track your film history across **5,014 movies** spanning from 1980 to 2025.
@@ -35,7 +36,12 @@ Built for speed and simplicity using modern web standards.
     *   Virtual "Sliding Window" DOM rendering (renders only 5 cards at a time for 60fps performance).
     *   Smart image preloading.
 
-## 🚀 Run Locally
+## 🚀 Deployment
+This project is automatically deployed/hosted via **GitHub Pages**.
+*   **Live URL:** [https://cristelo-sirc.github.io/movie-challenge/](https://cristelo-sirc.github.io/movie-challenge/)
+*   **Workflow:** Pushing to the `main` branch triggers a GitHub Action (`.github/workflows/deploy.yml`) that builds and deploys the static content.
+
+## 💻 Run Locally
 No build step required! This is a static web application.
 
 1.  Clone the repository.
