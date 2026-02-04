@@ -1,10 +1,13 @@
 /**
- * Main Application for 5000 Movie Challenge
+ * Main Application
  * Ties together the sliding window engine, storage, and UI
  */
 
 (function () {
     'use strict';
+
+    // Configuration reference (will be set in init)
+    let config = null;
 
     // DOM Elements
     const elements = {
@@ -86,6 +89,15 @@
      * Initialize the application
      */
     function init() {
+        // Initialize config system first
+        config = ConfigLoader.init();
+
+        // Initialize ItemManager
+        ItemManager.init();
+
+        // Initialize StorageManager with config
+        StorageManager.init();
+
         // Check for URL-based progress first (for shared links)
         let savedState = StorageManager.checkURLForProgress();
 
@@ -104,10 +116,14 @@
 
         // Initialize backup reminder tracking
         const totalRated = savedState.seen.length + savedState.notSeen.length;
-        lastBackupReminder = Math.floor(totalRated / 100) * 100;
+        const reminderInterval = config.gamification.backupReminderInterval || 100;
+        lastBackupReminder = Math.floor(totalRated / reminderInterval) * reminderInterval;
+
+        // Get items from ItemManager
+        const items = ItemManager.getAll();
 
         // Initialize the sliding window
-        SlidingWindow.init(MOVIES, savedState, {
+        SlidingWindow.init(items, savedState, {
             onUpdate: handleUpdate,
             onComplete: handleComplete
         });
@@ -234,15 +250,19 @@
 
     /**
      * Check if we should show a backup reminder
-     * Shows every 100 movies on mobile devices
+     * Shows at intervals defined in config on mobile devices
      */
     function checkBackupReminder(totalRated) {
         // Only show on mobile
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (!isMobile) return;
 
-        // Check if we've hit a new 100-movie milestone
-        const currentMilestone = Math.floor(totalRated / 100) * 100;
+        // Get reminder interval from config (0 to disable)
+        const reminderInterval = config.gamification.backupReminderInterval || 100;
+        if (reminderInterval <= 0) return;
+
+        // Check if we've hit a new milestone
+        const currentMilestone = Math.floor(totalRated / reminderInterval) * reminderInterval;
         if (currentMilestone > lastBackupReminder && currentMilestone > 0) {
             lastBackupReminder = currentMilestone;
             showBackupReminder(currentMilestone);
@@ -256,10 +276,12 @@
         // Don't show if one is already visible
         if (document.querySelector('.backup-reminder-banner')) return;
 
+        const itemTypePlural = config.itemTypePlural || 'movies';
+
         const banner = document.createElement('div');
         banner.className = 'backup-reminder-banner';
         banner.innerHTML = `
-            <span>🎉 ${milestone} movies rated! Backup your progress?</span>
+            <span>🎉 ${milestone} ${itemTypePlural} rated! Backup your progress?</span>
             <div style="display: flex; gap: 8px;">
                 <button class="backup-now-btn">Backup Now</button>
                 <button class="banner-close" aria-label="Dismiss">✕</button>
@@ -311,10 +333,15 @@
         elements.completionState.classList.remove('hidden');
 
         const stats = StorageManager.getStats(state);
+        const totalCount = config.data.totalCount.toLocaleString();
+        const itemTypePlural = config.itemTypePlural || 'movies';
+        const positiveLabel = config.actions.positive.pastTense || 'seen';
+        const negativeLabel = config.actions.negative.pastTense || 'not seen';
+
         elements.completionStats.innerHTML = `
-            You've rated all <strong>5,000</strong> movies!<br>
-            Seen: <span style="color: var(--accent-seen)">${stats.seenCount}</span> | 
-            Not Seen: <span style="color: var(--accent-skip)">${stats.notSeenCount}</span>
+            You've rated all <strong>${totalCount}</strong> ${itemTypePlural}!<br>
+            ${positiveLabel.charAt(0).toUpperCase() + positiveLabel.slice(1)}: <span style="color: var(--accent-seen)">${stats.seenCount}</span> |
+            ${negativeLabel.charAt(0).toUpperCase() + negativeLabel.slice(1)}: <span style="color: var(--accent-skip)">${stats.notSeenCount}</span>
         `;
 
         // Disable action buttons
@@ -785,7 +812,7 @@
         StorageManager.save(newState);
 
         // Reinitialize the sliding window
-        SlidingWindow.init(MOVIES, newState, {
+        SlidingWindow.init(ItemManager.getAll(), newState, {
             onUpdate: handleUpdate,
             onComplete: handleComplete
         });
@@ -795,7 +822,8 @@
 
         // Update backup reminder tracking
         const totalRated = newState.seen.length + newState.notSeen.length;
-        lastBackupReminder = Math.floor(totalRated / 100) * 100;
+        const reminderInterval = config.gamification.backupReminderInterval || 100;
+        lastBackupReminder = Math.floor(totalRated / reminderInterval) * reminderInterval;
 
         closeModal();
         showToast(`Imported ${newState.seen.length + newState.notSeen.length} ratings!`, 'success');
@@ -816,29 +844,38 @@
             ? Math.round((progress.seen / progress.current) * 100)
             : 0;
 
-        // Calculate decade breakdown
+        // Calculate era breakdown
         const state = SlidingWindow.getState();
-        const decadeStats = calculateDecadeStats(state.seen);
-        const bestDecade = Object.entries(decadeStats)
+        const eraStats = calculateEraStats(state.seen);
+        const bestEra = Object.entries(eraStats)
             .sort((a, b) => b[1] - a[1])[0];
 
-        const shareText = `🎬 My 5000 Movie Challenge Progress
+        // Get config values
+        const challengeName = config.name || '5000 Movie Challenge';
+        const itemTypePlural = config.itemTypePlural || 'movies';
+        const totalCount = config.data.totalCount.toLocaleString();
+        const positiveLabel = config.actions.positive.pastTense || 'seen';
+        const negativeLabel = config.actions.negative.pastTense || 'not seen';
+        const hashtag = config.sharing.hashtag || '#5000MovieChallenge';
+        const shareUrl = ConfigLoader.getShareUrl();
 
-✅ Seen: ${progress.seen.toLocaleString()} movies (${percentSeen}%)
-❌ Haven't Seen: ${progress.notSeen.toLocaleString()}
-📊 Progress: ${progress.current.toLocaleString()} / 5,000
-${bestDecade ? `🏆 Favorite decade: ${bestDecade[0]} (${bestDecade[1]} seen)` : ''}
+        const shareText = `🎬 My ${challengeName} Progress
 
-Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
+✅ ${positiveLabel.charAt(0).toUpperCase() + positiveLabel.slice(1)}: ${progress.seen.toLocaleString()} ${itemTypePlural} (${percentSeen}%)
+❌ ${negativeLabel.charAt(0).toUpperCase() + negativeLabel.slice(1)}: ${progress.notSeen.toLocaleString()}
+📊 Progress: ${progress.current.toLocaleString()} / ${totalCount}
+${bestEra ? `🏆 Favorite era: ${bestEra[0]} (${bestEra[1]} ${positiveLabel})` : ''}
 
-#5000MovieChallenge`;
+Try it yourself: ${shareUrl}
+
+${hashtag}`;
 
         // Try native share API first (works best on iOS/mobile)
         if (navigator.share) {
             navigator.share({
-                title: '5000 Movie Challenge',
+                title: challengeName,
                 text: shareText,
-                url: 'https://cristelo-sirc.github.io/movie-challenge/'
+                url: shareUrl
             }).then(() => {
                 showToast('Shared!', 'success');
             }).catch((err) => {
@@ -883,7 +920,13 @@ Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
         document.body.removeChild(textarea);
     }
 
-    function calculateDecadeStats(seenIds) {
+    function calculateEraStats(seenIds) {
+        // Use ItemManager if available, otherwise fallback
+        if (typeof ItemManager !== 'undefined' && ItemManager.isInitialized) {
+            return ItemManager.calculateEraStats(seenIds);
+        }
+
+        // Fallback to hardcoded logic
         const stats = {
             '1980s': 0,
             '1990s': 0,
@@ -893,23 +936,41 @@ Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
         };
 
         const seenSet = new Set(seenIds);
+        const items = (typeof MOVIES !== 'undefined') ? MOVIES : [];
 
-        MOVIES.forEach(movie => {
-            if (seenSet.has(movie.id)) {
-                const decade = getDecade(movie.year);
-                stats[decade]++;
+        items.forEach(item => {
+            if (seenSet.has(item.id)) {
+                const era = getEra(item.year);
+                if (era in stats) {
+                    stats[era]++;
+                }
             }
         });
 
         return stats;
     }
 
-    function getDecade(year) {
+    // Alias for backwards compatibility
+    function calculateDecadeStats(seenIds) {
+        return calculateEraStats(seenIds);
+    }
+
+    function getEra(year) {
+        if (typeof ConfigLoader !== 'undefined' && ConfigLoader.isInitialized) {
+            const era = ConfigLoader.getEraForValue(year);
+            return era ? era.id : '2020s';
+        }
+        // Fallback
         if (year < 1990) return '1980s';
         if (year < 2000) return '1990s';
         if (year < 2010) return '2000s';
         if (year < 2020) return '2010s';
         return '2020s';
+    }
+
+    // Alias for backwards compatibility
+    function getDecade(year) {
+        return getEra(year);
     }
 
     // ===== BACKUP MODAL FUNCTIONS =====
@@ -960,8 +1021,9 @@ Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
      */
     function shareViaEmail() {
         const shareURL = elements.backupModal.dataset.shareUrl;
-        const subject = encodeURIComponent('My Movie Challenge Progress');
-        const body = encodeURIComponent(`🎬 Here's my Movie Challenge progress!\n\nClick to continue where I left off:\n${shareURL}`);
+        const challengeName = config.shortName || config.name || 'Challenge';
+        const subject = encodeURIComponent(`My ${challengeName} Progress`);
+        const body = encodeURIComponent(`🎬 Here's my ${challengeName} progress!\n\nClick to continue where I left off:\n${shareURL}`);
 
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
         showToast('Opening email...', 'success');
@@ -972,7 +1034,8 @@ Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
      */
     function shareViaSMS() {
         const shareURL = elements.backupModal.dataset.shareUrl;
-        const body = encodeURIComponent(`🎬 My Movie Challenge Progress\n\nClick to restore:\n${shareURL}`);
+        const challengeName = config.shortName || config.name || 'Challenge';
+        const body = encodeURIComponent(`🎬 My ${challengeName} Progress\n\nClick to restore:\n${shareURL}`);
 
         // iOS uses &body=, Android uses ?body=
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -991,12 +1054,18 @@ Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
         const code = StorageManager.exportCompressed(state);
         const totalRated = state.seen.length + state.notSeen.length;
 
-        const content = `🎬 5000 Movie Challenge - Progress Backup
+        const challengeName = config.name || '5000 Movie Challenge';
+        const itemTypePlural = config.itemTypePlural || 'Movies';
+        const positiveLabel = config.actions.positive.pastTense || 'Seen';
+        const negativeLabel = config.actions.negative.pastTense || 'Not Seen';
+        const baseUrl = ConfigLoader.getShareUrl();
+
+        const content = `🎬 ${challengeName} - Progress Backup
 ========================================
 
-Total Movies Rated: ${totalRated}
-Seen: ${state.seen.length}
-Not Seen: ${state.notSeen.length}
+Total ${itemTypePlural.charAt(0).toUpperCase() + itemTypePlural.slice(1)} Rated: ${totalRated}
+${positiveLabel.charAt(0).toUpperCase() + positiveLabel.slice(1)}: ${state.seen.length}
+${negativeLabel.charAt(0).toUpperCase() + negativeLabel.slice(1)}: ${state.notSeen.length}
 Date: ${new Date().toLocaleDateString()}
 
 OPTION 1: Click this link to restore
@@ -1006,13 +1075,14 @@ OPTION 2: Paste this code in the app
 ${code}
 
 ========================================
-https://cristelo-sirc.github.io/movie-challenge/`;
+${baseUrl}`;
 
         const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `movie-challenge-backup-${new Date().toISOString().split('T')[0]}.txt`;
+        const filePrefix = (config.itemType || 'movie').toLowerCase();
+        a.download = `${filePrefix}-challenge-backup-${new Date().toISOString().split('T')[0]}.txt`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
