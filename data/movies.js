@@ -80194,3 +80194,6 @@ const MOVIES = [
     ]
   }
 ];
+
+// Make available globally for ItemManager
+if (typeof window \!== 'undefined') window.MOVIES = MOVIES;
