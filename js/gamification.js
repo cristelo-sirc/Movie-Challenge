@@ -9,6 +9,7 @@ const GamificationManager = (function () {
     let currentStreak = 0;
     let bestStreak = 0;
     let totalSeen = 0;
+    let firedMilestones = new Set();
 
     // Rank definitions
     const ranks = [
@@ -21,7 +22,7 @@ const GamificationManager = (function () {
     ];
 
     // Milestone thresholds
-    const milestones = [10, 50, 100, 250, 500, 1000, 2000, 3000, 4000, 5000];
+    const milestones = [10, 50, 100, 250, 500, 1000, 1500, 2000, 2500, 3000, 3500];
 
     /**
      * Initialize with saved state
@@ -30,6 +31,8 @@ const GamificationManager = (function () {
         totalSeen = seenCount;
         bestStreak = savedBestStreak;
         currentStreak = 0;
+        // Mark milestones already passed as fired
+        firedMilestones = new Set(milestones.filter(m => m <= seenCount));
     }
 
     /**
@@ -50,9 +53,10 @@ const GamificationManager = (function () {
             rankUp: null
         };
 
-        // Check for milestone
-        if (milestones.includes(totalSeen)) {
+        // Check for milestone (only fire once)
+        if (milestones.includes(totalSeen) && !firedMilestones.has(totalSeen)) {
             result.milestone = totalSeen;
+            firedMilestones.add(totalSeen);
         }
 
         // Check for rank up
@@ -76,13 +80,22 @@ const GamificationManager = (function () {
 
     /**
      * Record an undo - adjusts state
+     * @param {boolean} wasSeen - true if the undone action was 'seen', false if 'notSeen'
      */
     function recordUndo(wasSeen) {
         if (wasSeen) {
             totalSeen = Math.max(0, totalSeen - 1);
-            // Can't reliably restore streak, so reset it
-            currentStreak = 0;
         }
+        // Always reset streak on undo
+        currentStreak = 0;
+    }
+
+    /**
+     * Sync totalSeen from authoritative source (SlidingWindow)
+     * Call after undo to prevent drift
+     */
+    function syncSeenCount(count) {
+        totalSeen = count;
     }
 
     /**
@@ -178,6 +191,7 @@ const GamificationManager = (function () {
         recordSeen,
         recordSkip,
         recordUndo,
+        syncSeenCount,
         getRank,
         getNextRankProgress,
         getStreakDisplay,

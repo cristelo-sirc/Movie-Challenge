@@ -1,7 +1,7 @@
 /**
- * Sliding Window Engine for 5000 Movie Challenge
+ * Sliding Window Engine for Movie Challenge
  * 
- * Manages a virtualized view of 5,000 movies to prevent memory issues.
+ * Manages a virtualized view of movies to prevent memory issues.
  * Only a small "window" of cards is rendered to the DOM at any time.
  */
 

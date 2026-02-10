@@ -1,5 +1,5 @@
 
-# 🎬 5000 Movie Challenge
+# 🎬 Movie Challenge
 [![Live Demo](https://img.shields.io/badge/demo-live-green.svg?style=for-the-badge&logo=github)](https://cristelo-sirc.github.io/movie-challenge/)
 
 **Can you watch them all?**
@@ -8,7 +8,7 @@ A Tinder-style movie discovery app that challenges you to track your film histor
 ## ✨ Features
 
 ### 🎞 Massive Dataset
-*   **5,000+ Movies:** Curated selection of hits, cult classics, and hidden gems.
+*   **3,800+ Movies:** Curated selection of English-language hits, cult classics, and award-winning international films.
 *   **Rich Metadata:** Tap any card to flip it and see **Rating**, **Runtime**, and **Synopsis**.
 *   **Decade Filtering:** Jump straight to the 80s, 90s, 2000s, 2010s, or 2020s.
 

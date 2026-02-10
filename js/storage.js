@@ -1,5 +1,5 @@
 /**
- * Storage Manager for 5000 Movie Challenge
+ * Storage Manager for Movie Challenge
  * Handles all localStorage persistence with batched writes
  */
 
@@ -129,7 +129,8 @@ const StorageManager = (function () {
     function getStats(state) {
         const total = state.seen.length + state.notSeen.length;
         const seenCount = state.seen.length;
-        const percentComplete = total > 0 ? Math.round((total / 5000) * 100) : 0;
+        const totalMovies = (typeof MOVIES !== 'undefined') ? MOVIES.length : total;
+        const percentComplete = total > 0 ? Math.round((total / totalMovies) * 100) : 0;
         const percentSeen = total > 0 ? Math.round((seenCount / total) * 100) : 0;
 
         return {
@@ -138,7 +139,7 @@ const StorageManager = (function () {
             notSeenCount: state.notSeen.length,
             percentComplete,
             percentSeen,
-            remaining: 5000 - total
+            remaining: totalMovies - total
         };
     }
 
@@ -158,7 +159,7 @@ const StorageManager = (function () {
 
             // Build bit array: 2 bits per movie
             // 00 = not rated, 01 = seen, 10 = not seen
-            const totalMovies = 5000;
+            const totalMovies = (typeof MOVIES !== 'undefined') ? MOVIES.length : 5000;
             const bitsPerMovie = 2;
             const totalBytes = Math.ceil((totalMovies * bitsPerMovie) / 8);
             const bytes = new Uint8Array(totalBytes);
@@ -285,8 +286,9 @@ const StorageManager = (function () {
             const notSeen = [];
 
             if (typeof MOVIES !== 'undefined') {
+                const totalMovies = MOVIES.length;
                 MOVIES.forEach((movie, index) => {
-                    if (index >= 5000) return;
+                    if (index >= totalMovies) return;
 
                     const bitPosition = index * 2;
                     const byteIndex = Math.floor(bitPosition / 8);

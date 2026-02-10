@@ -1,5 +1,5 @@
 /**
- * Main Application for 5000 Movie Challenge
+ * Main Application for Movie Challenge
  * Ties together the sliding window engine, storage, and UI
  */
 
@@ -124,6 +124,12 @@
 
         // Hide loading, show cards
         elements.loadingState.classList.add('hidden');
+
+        // Set total movie count dynamically
+        const totalCountEl = document.getElementById('totalCount');
+        if (totalCountEl) {
+            totalCountEl.textContent = MOVIES.length.toLocaleString();
+        }
     }
 
     /**
@@ -312,7 +318,7 @@
 
         const stats = StorageManager.getStats(state);
         elements.completionStats.innerHTML = `
-            You've rated all <strong>5,000</strong> movies!<br>
+            You've rated all <strong>${MOVIES.length.toLocaleString()}</strong> movies!<br>
             Seen: <span style="color: var(--accent-seen)">${stats.seenCount}</span> | 
             Not Seen: <span style="color: var(--accent-skip)">${stats.notSeenCount}</span>
         `;
@@ -623,9 +629,18 @@
 
         elements.undoBtn.addEventListener('click', () => {
             AudioManager.playUndoSound();
-            GamificationManager.recordUndo(true);
+            // Check what the last action was before undo removes it
+            const state = SlidingWindow.getState();
+            const lastAction = state.history.length > 0
+                ? state.history[state.history.length - 1]
+                : null;
+            const wasSeen = lastAction?.action === 'seen';
+            GamificationManager.recordUndo(wasSeen);
             hideStreakDisplay();
             SlidingWindow.undo();
+            // Re-sync seen count from authoritative source
+            const progress = SlidingWindow.getProgress();
+            GamificationManager.syncSeenCount(progress.seen);
         });
 
         elements.resetBtn.addEventListener('click', handleReset);
@@ -822,21 +837,21 @@
         const bestDecade = Object.entries(decadeStats)
             .sort((a, b) => b[1] - a[1])[0];
 
-        const shareText = `🎬 My 5000 Movie Challenge Progress
+        const shareText = `🎬 My Movie Challenge Progress
 
 ✅ Seen: ${progress.seen.toLocaleString()} movies (${percentSeen}%)
 ❌ Haven't Seen: ${progress.notSeen.toLocaleString()}
-📊 Progress: ${progress.current.toLocaleString()} / 5,000
+📊 Progress: ${progress.current.toLocaleString()} / ${MOVIES.length.toLocaleString()}
 ${bestDecade ? `🏆 Favorite decade: ${bestDecade[0]} (${bestDecade[1]} seen)` : ''}
 
 Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
 
-#5000MovieChallenge`;
+#MovieChallenge`;
 
         // Try native share API first (works best on iOS/mobile)
         if (navigator.share) {
             navigator.share({
-                title: '5000 Movie Challenge',
+                title: 'Movie Challenge',
                 text: shareText,
                 url: 'https://cristelo-sirc.github.io/movie-challenge/'
             }).then(() => {
@@ -991,7 +1006,7 @@ Try it yourself: https://cristelo-sirc.github.io/movie-challenge/
         const code = StorageManager.exportCompressed(state);
         const totalRated = state.seen.length + state.notSeen.length;
 
-        const content = `🎬 5000 Movie Challenge - Progress Backup
+        const content = `🎬 Movie Challenge - Progress Backup
 ========================================
 
 Total Movies Rated: ${totalRated}
