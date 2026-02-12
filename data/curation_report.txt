@@ -1,0 +1,18 @@
+Curation Report - 2026-02-12T00:27:23.052Z
+============================================
+Strategy: Per-Decade Thresholds ({"1980":0.45,"1990":0.45,"2000":0.52,"2010":0.53,"2020":0.53})
+Total Input: 14034
+Final Pool:  4934
+
+Source Breakdown:
+  - Canon Only (Rescue): 65
+  - Score Only (Reach):  4775
+  - Both (Core):         112
+  - Rejected:            9082
+
+Per Decade Breakdown:
+  1980s: 1509
+  1990s: 1975
+  2000s: 1194
+  2010s: 197
+  2020s: 59
