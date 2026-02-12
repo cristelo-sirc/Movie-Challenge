@@ -407,6 +407,10 @@
         const overview = movie.overview || 'No description available.';
         const truncatedOverview = overview.length > 300 ? overview.substring(0, 297) + '...' : overview;
 
+        // Extract metadata (handle both flat and nested structures)
+        const director = movie.director || (movie.credits && movie.credits.director);
+        const cast = movie.cast || (movie.credits && movie.credits.cast);
+
         card.innerHTML = `
             <div class="card-inner">
                 <div class="card-front">
@@ -437,15 +441,15 @@
                     <span class="rating-value">${rating.toFixed(1)}/10</span>
                 </div>
                 
-                ${movie.runtime || movie.director ? `
+                ${movie.runtime || director ? `
                 <div class="card-back-meta">
                     ${movie.runtime ? `<span>⏱ ${movie.runtime}m</span>` : ''}
-                    ${movie.director ? `<span>🎬 ${movie.director}</span>` : ''}
+                    ${director ? `<span>🎬 ${director}</span>` : ''}
                 </div>` : ''}
                 
-                ${movie.cast && movie.cast.length ? `
+                ${cast && cast.length ? `
                 <div class="card-back-cast">
-                    <strong>Cast:</strong> ${movie.cast.join(', ')}
+                    <strong>Cast:</strong> ${cast.join(', ')}
                 </div>` : ''}
 
                 <div class="card-back-overview">${escapeHtml(truncatedOverview)}</div>
