@@ -10,34 +10,34 @@
 
 ---
 
-### Current Sprint: 3-Layer Curation & Polish
+### Current Sprint: Refinement & Polish
 
 | Priority | Task | Status | Owner |
 | :--- | :--- | :--- | :--- |
-| **High** | **Implement 3-Layer Curation** (Canon + Scorer) | **Completed** | @Antigravity |
+| **High** | **Foreign Language Filter** (Global Hits Only) | **Completed** | @Antigravity |
+| **High** | **Data Enrichment** (Cast & Director) | **Completed** | @Antigravity |
 | Medium | Verify Mobile Loading Fix | In Progress | @Antigravity |
 | Low | Refine Income Viz | Planned | @Antigravity |
-| Low | Deployment Fixes | Planned | @Antigravity |
 
 ---
 
 <details>
 <summary><strong>✅ Completed Features</strong></summary>
 
-- **Curation Strategy:**
-  - Implemented 3-Layer Curation (Cable Canon + Cultural Reach Scorer + Dedup).
-  - Built `cultural_reach_scorer.js` with 5-signal formula.
-  - Sourced ~1,000 cable staples from HBO, USA Up All Night, TNT/TBS.
-  - Final pool: 4,938 movies (14 rescued canon favorites).
+- **Curation Strategy (v2.1):**
+  - **Foreign Language Filter:** Strict `en` filter with exceptions for Global Hits (>2,000 votes).
+  - **Data Enrichment:** Added Directors and Top 5 Cast for all 4,721 movies.
+  - **3-Layer Curation:** Cable Canon + Cultural Reach Scorer + Dedup.
+  - Final pool: **4,721 movies** (Quality > Quantity).
 - **Core Game Loop:**
   - Swipe left/right logic (Tinder-style).
   - "Seen" / "Not Seen" / "Skip" actions.
   - Undo functionality with state restoration.
 
 ### UI / UX
+- **Enriched Cards:** Back of card now shows Director and Cast.
 - High-performance "Sliding Window" card stack (60 fps).
 - Dynamic "Time Travel" theming (80s Synthwave → 2020s Modern).
-- Touch-optimized swiping with animations.
 
 ### Data Persistence
 - LocalStorage support for saving progress.
@@ -49,7 +49,24 @@
 
 ### Infrastructure
 - CI/CD pipeline via GitHub Actions.
-- Automated `data/movies.js` generation scripts.
+- Automated generation scripts: `fetch` → `build` → `enrich`.
+
+</details>
+
+<details>
+<summary><strong>🧠 Lessons Learned</strong></summary>
+
+### Data Quality vs. Quantity
+- **The "Deep Trawl" Trap:** Broad searches (`/discover/movie`) return high volume but low metadata quality (missing credits).
+- **Solution:** A targeted "Enrichment" pass (`/movie/{id}/credits`) is necessary for high-value apps, even if it takes longer to run.
+
+### Algorithmic Curation
+- **Language Bias:** Raw popularity sorts bring in niche regional hits (e.g., French TV movies) that clutter a global "pop culture" list.
+- **The "Global Hit" Proxy:** Using `vote_count > 2000` proved an effective proxy for identifying foreign films that crossed over into the mainstream (e.g., *Parasite*, *Spirited Away*).
+
+### UI Resilience
+- **Nested Data:** Always verify data structure depth (`movie.credits.cast` vs `movie.cast`).
+- **Fail-safes:** UI components must gracefully handle missing metadata (null checks for Directors/Runtime).
 
 </details>
 
@@ -65,9 +82,14 @@
 <details>
 <summary><strong>📝 Changelog</strong></summary>
 
+### Feb 12, 2026
+- **Data Enrichment:** Fetching Director/Cast for all movies.
+- **Foreign Filter:** Excluded ~1,500 non-English obscurities; kept Global Hits.
+- **UI Update:** Displaying Cast/Director on card back.
+
 ### Feb 11, 2026
 - Completed popularity-bias analysis of existing movie list.
-- Drafted Hybrid Curation strategy (Core Canon, Cult Keywords, Cable Staples, Box Office & Critics).
+- Drafted Hybrid Curation strategy.
 
 ### Feb 3, 2026
 - Fixed v2.0 bugs (Seen button visibility, streak indicator, audio, 80s theme).
