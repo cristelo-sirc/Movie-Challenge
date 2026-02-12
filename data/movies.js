@@ -1,11 +1,11 @@
 /**
  * 5000 Movie Challenge - Curated Dataset
- * Generated: 2026-02-12T00:27:23.059Z
+ * Generated: 2026-02-12T00:42:01.564Z
  * Strategy: Variable Decade Thresholds
  * Total: 4934
  */
 
-const MOVIES = [
+var MOVIES = [
   {
     "id": 694,
     "title": "The Shining",
